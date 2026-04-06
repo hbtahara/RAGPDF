@@ -1,0 +1,49 @@
+
+from langchain_community.document_loaders import PyPDFDirectoryLoader
+#Informa uma pasta com os dados em pdf e ele careega mno projeto 
+
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+#Percorre o documento e divide em pedacos de textos (Chuncks)
+
+from langchain_community.vectorstores import Chroma
+#cria o banco de dados  
+
+from langchain_openai import OpenAIEmbeddings
+#cria os embeddings
+
+from dotenv import load_dotenv
+#carrega as variaveis de ambiente
+
+load_dotenv() #carrega as variaveis de ambiente
+
+src = "src" #Base de conhecimentos com os arquivos pdf
+
+def criar_db(): #funcao principal que chama as outras funcoes
+   documentos = carrega_documentos() #carrega os documentos
+   chuncks = divide_em_chuncks(documentos) #divide os chuncks
+   vetoriza_chuncks(chuncks) #vetoriza os chuncks
+
+def carrega_documentos(): #funcao que carrega os documentos
+    carrega_documentos = PyPDFDirectoryLoader(src,glob="*.pdf") #carrega os documentos
+    print(carrega_documentos) #imprime os documentos
+    documentos = carrega_documentos.load()
+    return documentos
+
+def divide_em_chuncks(documentos):
+        text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,   #tamanho do pedaco de texto
+        chunk_overlap=200, #sobreposicao de pedacos de texto
+        length_function=len #funcao para calcular o tamanho do pedaco de texto
+        #add_start_index=True #adiciona o indice inicial do pedaco de texto
+    )
+    
+chunks = text_splitter.split_documents(documentos) #divide os documentos em pedacos de textos (Chuncks)
+    
+return chunks
+
+def vetoriza_chuncks(chuncks):
+   db= Chroma.from_documents(chuncks,embedding=OpenAIEmbeddings(), persist_directory="./db")
+
+criar_db()
+
+
