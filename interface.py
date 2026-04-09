@@ -31,24 +31,75 @@ def salvar_na_memoria(pergunta, resposta, fontes, metricas):
 # 2. Configurações da Página
 st.set_page_config(page_title="RAG PDF Expert - Com Memória", layout="wide")
 
-# 3. Sidebar
+# 4. Inicializa o Chat e Métricas
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "metrics" not in st.session_state:
+    st.session_state.metrics = {"total": 0, "prompt": 0, "completion": 0, "cost": 0.0}
+if "sources" not in st.session_state:
+    st.session_state.sources = []
+
+# Exibe o histórico de mensagens
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# 3. Sidebar (Atualizada com Métricas)
 with st.sidebar:
-    st.title("🧠 Memória do Agente")
+    st.title("🧠 Memória e Uso")
     memoria_atual = carregar_memoria()
     st.write(f"Perguntas memorizadas: **{len(memoria_atual)}**")
-    if st.button("Limpar Memória"):
+    
+    if memoria_atual:
+        pergunta_selecionada = st.selectbox(
+            "📜 Histórico de Perguntas",
+            options=["Selecione para ver..."] + list(memoria_atual.keys()),
+            index=0
+        )
+        if pergunta_selecionada != "Selecione para ver...":
+            detalhes = memoria_atual[pergunta_selecionada]
+            st.info(f"**Resposta memorizada:**\n\n{detalhes['resposta'][:200]}...")
+            if st.button("Usar esta pergunta"):
+                st.session_state.prompt_from_history = pergunta_selecionada
+                st.rerun()
+    
+    st.divider()
+    st.subheader("📊 Métricas da Última Consulta")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Tokens Total", st.session_state.metrics["total"])
+        st.metric("Tokens Prompt", st.session_state.metrics["prompt"])
+    with col2:
+        st.metric("Custo (USD)", f"${st.session_state.metrics['cost']:.4f}")
+        st.metric("Tokens Resposta", st.session_state.metrics["completion"])
+    
+    st.divider()
+    st.subheader("📚 Fontes Consultadas")
+    if st.session_state.sources:
+        for f in st.session_state.sources:
+            st.write(f)
+    else:
+        st.write("Nenhuma fonte consultada ainda.")
+
+    st.divider()
+    if st.button("Limpar Memória", use_container_width=True):
         if os.path.exists(ARQUIVO_MEMORIA): os.remove(ARQUIVO_MEMORIA)
+        st.session_state.metrics = {"total": 0, "prompt": 0, "completion": 0, "cost": 0.0}
+        st.session_state.sources = []
         st.success("Memória limpa!")
         st.rerun()
 
 st.title("🤖 Agente RAG com Memória Inteligente")
 
-# 4. Inicializa o Chat
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# 5. Interação (Chat Input ou Histórico)
+prompt = st.chat_input("Pergunte algo...")
 
-# 5. Interação
-if prompt := st.chat_input("Pergunte algo..."):
+# Se veio uma pergunta do dropdown de histórico
+if "prompt_from_history" in st.session_state and st.session_state.prompt_from_history:
+    prompt = st.session_state.prompt_from_history
+    st.session_state.prompt_from_history = None # Limpa para não entrar em loop
+
+if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"): st.markdown(prompt)
 
@@ -58,9 +109,15 @@ if prompt := st.chat_input("Pergunte algo..."):
         cached = memoria[prompt.lower()]
         output = cached["resposta"]
         is_cached = True
-        fontes_consultadas = cached["fontes"]
-        total_tokens = cached["total_tokens"]
-        custo = cached["custo"]
+        st.session_state.sources = sorted(list(set(cached["fontes"])))
+        
+        # Resposta da memória tem custo zero de API
+        st.session_state.metrics = {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cost": 0.0
+        }
     else:
         # --- CONSULTA REAL RAG ---
         with st.chat_message("assistant"):
@@ -76,16 +133,26 @@ if prompt := st.chat_input("Pergunte algo..."):
                 with get_openai_callback() as cb:
                     res = chain.invoke({"contexto": contexto, "pergunta": prompt})
                     output = res.content
-                    total_tokens = cb.total_tokens
-                    custo = cb.total_cost
+                    
+                    # Atualiza métricas no session_state
+                    st.session_state.metrics = {
+                        "total": cb.total_tokens,
+                        "prompt": cb.prompt_tokens,
+                        "completion": cb.completion_tokens,
+                        "cost": cb.total_cost
+                    }
 
                 # Extrai fontes
-                fontes_consultadas = []
+                fontes = []
                 for d in resultados:
-                    fontes_consultadas.append(f"📄 {os.path.basename(d.metadata.get('source','?'))} (pág {d.metadata.get('page','?')})")
+                    fontes.append(f"📄 {os.path.basename(d.metadata.get('source','?'))} (pág {d.metadata.get('page','?')})")
+                st.session_state.sources = sorted(list(set(fontes)))
                 
                 # Salva nova consulta na memória
-                salvar_na_memoria(prompt, output, set(fontes_consultadas), {"total_tokens": total_tokens, "total_cost": custo})
+                salvar_na_memoria(prompt, output, set(st.session_state.sources), {
+                    "total_tokens": st.session_state.metrics["total"], 
+                    "total_cost": st.session_state.metrics["cost"]
+                })
                 is_cached = False
 
     # Exibe a resposta
@@ -93,9 +160,7 @@ if prompt := st.chat_input("Pergunte algo..."):
         if 'is_cached' in locals() and is_cached:
             st.info("⚡ Resposta recuperada da Memória (Custo Zero)")
         st.markdown(output)
-        
-        with st.sidebar:
-            st.write(f"🔹 **Métrica:** {total_tokens} tokens")
-            for f in sorted(list(set(fontes_consultadas))): st.write(f)
 
     st.session_state.messages.append({"role": "assistant", "content": output})
+    st.rerun() # Rerun para atualizar a sidebar com as novas métricas imediatamente
+
