@@ -3,6 +3,6 @@ memoria_consultas.json
 banco_de_dados_ollama.json
 banco_de_dados_ollama.jsonold
 banco_de_dados.jsonold
-src/*
+src/
 .env
 .DS_Store
