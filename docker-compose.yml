@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  ragpdf-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ragpdf-app
+    ports:
+      - "8501:8501"
+    volumes:
+      # Mapeamento do diretório de documentos PDFs para leitura da aplicação
+      - ./src:/app/src
+      
+      # Mapeamento dos arquivos JSON para manter persistência dos dados locais
+      # (Se os arquivos abaixo não existirem no host, o Docker criará diretórios vazios por padrão. 
+      # Recomenda-se criá-los vazios no host antes do docker-compose up)
+      - ./banco_de_dados.json:/app/banco_de_dados.json
+      - ./banco_de_dados_ollama.json:/app/banco_de_dados_ollama.json
+      - ./memoria_consultas.json:/app/memoria_consultas.json
+    environment:
+      # Chave de API OpenAI injetada a partir da variável do sistema/arquivo .env local
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # URL do Ollama apontando para o Host Físico
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      
+      # Variáveis de otimização do Ollama
+      - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL:-4}
+      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_LOADED_MODELS:-2}
+      - OLLAMA_FLASH_ATTENTION=${OLLAMA_FLASH_ATTENTION:-1}
+    
+    # Adiciona a capacidade de se comunicar com o Host no Linux/Windows usando 'host.docker.internal'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    
+    restart: unless-stopped

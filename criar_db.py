@@ -25,6 +25,7 @@ if sys.platform.startswith("win"):
         pass
 
 load_dotenv()
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
 
 def criar_db():
     print("Iniciando processo de criação do banco de dados...\n")
@@ -40,7 +41,7 @@ def criar_db():
         arquivo_db = DB_OPENAI
     elif escolha == "2":
         provedor = "Ollama"
-        embeddings = OllamaEmbeddings(model=MODEL_OLLAMA_EMBED)
+        embeddings = OllamaEmbeddings(model=MODEL_OLLAMA_EMBED, base_url=OLLAMA_BASE_URL)
         arquivo_db = DB_OLLAMA
     else:
         print("Opção inválida. Saindo...")

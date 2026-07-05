@@ -1,0 +1,6 @@
+OPENAI_API_KEY=sk-sua chave a aqui
+
+# Variáveis do Ollama para Otimização
+OLLAMA_NUM_PARALLEL=
+OLLAMA_MAX_LOADED_MODELS=
+OLLAMA_FLASH_ATTENTION=

@@ -16,6 +16,7 @@ if sys.platform.startswith("win"):
         pass
 
 load_dotenv()
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
 
 def carregar_memoria():
     if not os.path.exists(MEMORIA_CACHE):
@@ -48,7 +49,7 @@ def principal():
     else:
         provedor = "Ollama"
         arquivo_db = DB_OLLAMA
-        embeddings = OllamaEmbeddings(model=MODEL_OLLAMA_EMBED)
+        embeddings = OllamaEmbeddings(model=MODEL_OLLAMA_EMBED, base_url=OLLAMA_BASE_URL)
 
     if not os.path.exists(arquivo_db):
         print(f"❌ Erro: O arquivo {arquivo_db} não foi encontrado. Rode o 'criar_db.py' primeiro!")
@@ -113,6 +114,7 @@ def principal():
                     num_predict=2048,  # era 1024 — respostas mais completas
                     num_gpu=99,        # força todos os layers na GPU
                     num_thread=8,      # threads CPU para pré-processamento
+                    base_url=OLLAMA_BASE_URL,
                 )
 
             prompt = ChatPromptTemplate.from_messages([

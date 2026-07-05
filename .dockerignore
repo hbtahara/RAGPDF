@@ -1,0 +1,27 @@
+# Ambientes virtuais e dependências locais
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Controle de versão e IDEs
+.git/
+.gitignore
+.idea/
+.vscode/
+.DS_Store
+._*
+
+# Chaves de API e variáveis de ambiente locais (Segurança)
+.env
+
+# Arquivos de dados mutáveis e bancos de dados locais (gerenciados por volumes)
+banco_de_dados.json
+banco_de_dados.jsonold
+banco_de_dados_ollama.json
+banco_de_dados_ollama.jsonold
+memoria_consultas.json
+src/

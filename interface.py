@@ -11,6 +11,7 @@ from langchain_community.callbacks.manager import get_openai_callback
 
 load_dotenv()
 ARQUIVO_MEMORIA = MEMORIA_CACHE
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
 
 # 1. Funções de Memória (Cache)
 def carregar_memoria():
@@ -34,7 +35,7 @@ def salvar_na_memoria(pergunta, resposta, fontes, metricas):
 @st.cache_data(ttl=5)
 def verificar_ollama():
     try:
-        response = requests.get("http://localhost:11434/api/tags", timeout=1)
+        response = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=1)
         if response.status_code == 200:
             modelos = [m["name"] for m in response.json().get("models", [])]
             return True, modelos
@@ -48,7 +49,7 @@ def baixar_modelo_ollama(nome_modelo):
         st.error("Nome de modelo inválido! Use apenas letras, números, pontos, dois-pontos, hífens e sublinhados.")
         return False
     try:
-        url = "http://localhost:11434/api/pull"
+        url = f"{OLLAMA_BASE_URL}/api/pull"
         # timeout=(5, None): 5 segundos para conectar, sem limite de tempo para baixar os dados do stream
         response = requests.post(url, json={"name": nome_modelo}, stream=True, timeout=(5, None))
         
@@ -262,7 +263,7 @@ if prompt:
                         embeddings = OpenAIEmbeddings()
                     else:
                         arquivo_db = DB_OLLAMA
-                        embeddings = OllamaEmbeddings(model=MODEL_OLLAMA_EMBED)
+                        embeddings = OllamaEmbeddings(model=MODEL_OLLAMA_EMBED, base_url=OLLAMA_BASE_URL)
                         
                     vectorstore = InMemoryVectorStore.load(arquivo_db, embeddings)
                 except FileNotFoundError:
@@ -295,6 +296,7 @@ if prompt:
                             num_predict=2048,  # era 1024 — respostas mais completas
                             num_gpu=99,        # força todos os layers na GPU
                             num_thread=8,      # threads CPU para pré-processamento
+                            base_url=OLLAMA_BASE_URL,
                         )
 
                     # PROMPT COM HISTÓRICO (CHAT MEMORY)
