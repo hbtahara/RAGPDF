@@ -22,9 +22,11 @@ pip install streamlit langchain-openai langchain-community pypdf python-dotenv
 2.  **`src/`**: Pasta onde você deve colocar todos os seus arquivos PDF.
 3.  **`criar_db.py`**: Motor de processamento inicial dos documentos.
 4.  **`interface.py`**: A interface gráfica (GUI) profissional para chat.
-5.  **`main.py`**: Versão do chat para uso direto via terminal.
-6.  **`banco_de_dados.json`**: Onde os vetores dos seus PDFs ficam salvos.
-7.  **`memoria_consultas.json`**: Cache de inteligência do agente (Custo Zero).
+5.  **`main.py`**: Chat via terminal com suporte a OpenAI/Ollama e memória.
+6.  **`config.py`**: Arquivo mestre de configurações do projeto.
+7.  **`banco_de_dados.json`**: Vetores para uso com OpenAI.
+8.  **`banco_de_dados_ollama.json`**: Vetores para uso com Ollama.
+9.  **`memoria_consultas.json`**: Cache de inteligência do agente (Custo Zero).
 
 ---
 
@@ -50,11 +52,10 @@ streamlit run interface.py
 
 ## 🧠 Funcionalidades Inteligentes Implementadas
 
-### 🔹 Sistema de Memória (Cache JSON)
-O agente agora possui um arquivo `memoria_consultas.json`. Se você fizer uma pergunta que já foi feita antes:
-*   A resposta é **instantânea**.
-*   O custo de tokens é **zero**.
-*   A consulta não utiliza a API da OpenAI (Offline).
+### 🔹 Memória de Conversa (Contexto Inteligente)
+O agente agora possui memória de curto prazo durante a sessão:
+*   **Contexto**: Ele lembra das perguntas anteriores, permitindo conversas continuadas.
+*   **Cache Offline**: Perguntas repetidas são respondidas instantaneamente com custo zero.
 
 ### 🔹 Painel de Métricas e Fontes
 Na barra lateral da interface, você pode acompanhar:

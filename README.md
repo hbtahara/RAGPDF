@@ -1,70 +1,77 @@
 # 🤖 Projeto RAG PDF Chat - AI Expert
 
-Este projeto é um sistema de **RAG (Retrieval-Augmented Generation)** de alta performance, otimizado para rodar em **Python 3.13** no Mac, focado em análise técnica de grandes volumes de documentos PDF.
+Este projeto é um sistema de **RAG (Retrieval-Augmented Generation)** de alta performance, otimizado para **Python 3.13**, focado em análise técnica de documentos PDF com rastreamento detalhado de custos e memória inteligente.
 
 ---
 
-## 🛠️ Requisitos de Instalação
+## 🛠️ Instalação e Configuração
 
-Antes de começar, instale as bibliotecas necessárias no seu terminal:
+### 1. Clonar e Preparar Ambiente
+Certifique-se de estar na pasta do projeto e instale todas as dependências necessárias:
 
 ```bash
-pip install streamlit langchain-openai langchain-community pypdf python-dotenv
+pip install -r requirements.txt
 ```
 
-⚠️ **Nota para Mac/Python 3.13**: Este projeto utiliza o `InMemoryVectorStore` para evitar incompatibilidades com o `chromadb` em versões recentes do Python, garantindo 100% de estabilidade.
+### 2. Configurar API Key
+Crie ou edite o arquivo `.env` na raiz do projeto e adicione sua chave da OpenAI:
+```env
+OPENAI_API_KEY=sua_chave_aqui
+```
+
+⚠️ **Nota para Mac/Python 3.13**: O projeto utiliza `InMemoryVectorStore` para persistência local em JSON, garantindo 100% de compatibilidade sem necessidade de drivers complexos de banco de dados.
 
 ---
 
-## 📂 Estrutura de Arquivos
+## 📂 Estrutura do Projeto
 
-1.  **`.env`**: Contém a sua `OPENAI_API_KEY`.
-2.  **`src/`**: Pasta onde você deve colocar todos os seus arquivos PDF.
-3.  **`criar_db.py`**: Motor de processamento inicial dos documentos.
-4.  **`interface.py`**: A interface gráfica (GUI) profissional para chat.
-5.  **`main.py`**: Versão do chat para uso direto via terminal.
-6.  **`banco_de_dados.json`**: Onde os vetores dos seus PDFs ficam salvos.
-7.  **`memoria_consultas.json`**: Cache de inteligência do agente (Custo Zero).
+*   **`src/`**: Pasta onde devem ser colocados os arquivos PDF para análise.
+*   **`criar_db.py`**: Script para processar os PDFs, gerar embeddings e salvar o `banco_de_dados.json`.
+*   **`interface.py`**: Dashboard profissional em Streamlit com chat, métricas e histórico.
+*   **`main.py`**: Versão simplificada para uso via terminal.
+*   **`config.py`**: Central de configurações (Chunk size, modelos, caminhos).
+*   **`memoria_consultas.json`**: Cache inteligente que economiza tokens em perguntas repetidas.
 
 ---
 
-## 🚀 Como Utilizar (Passo a Passo)
+## 🚀 Como Usar
 
-### 1. Preparação (Importante!)
-Coloque seus arquivos PDF na pasta `src` e garanta que sua chave da OpenAI esteja no arquivo `.env`.
-
-### 2. Criar a Base de Conhecimento
-Sempre que adicionar ou alterar PDFs, rode o comando:
+### Passo 1: Processar Documentos
+Sempre que adicionar novos PDFs na pasta `src`, atualize o banco de dados:
 ```bash
 python3 criar_db.py
 ```
-*O sistema dividirá os textos em pedaços de 1500 caracteres (chunks) com 300 de sobreposição para garantir que nenhum detalhe seja perdido.*
 
-### 3. Iniciar o Chat (Interface Gráfica)
-Para a melhor experiência, utilize a interface moderna via navegador:
+### Passo 2: Iniciar a Interface
+Abra o aplicativo no seu navegador:
 ```bash
 streamlit run interface.py
 ```
 
 ---
 
-## 🧠 Funcionalidades Inteligentes Implementadas
+## 🧠 Funcionalidades de Elite
 
-### 🔹 Sistema de Memória (Cache JSON)
-O agente agora possui um arquivo `memoria_consultas.json`. Se você fizer uma pergunta que já foi feita antes:
-*   A resposta é **instantânea**.
-*   O custo de tokens é **zero**.
-*   A consulta não utiliza a API da OpenAI (Offline).
+### 🔹 Painel de Métricas (Sidebar)
+Acompanhe em tempo real o consumo da última consulta:
+*   **Contagem de Tokens**: Total, Prompt e Resposta.
+*   **Custo em USD**: Valor exato gasto na chamada da API.
+*   **Custo Zero no Cache**: Ao responder a partir da memória local, os contadores são zerados automaticamente.
 
-### 🔹 Painel de Métricas e Fontes
-Na barra lateral da interface, você pode acompanhar:
-*   **Métricas de Uso**: Contador exato de tokens e custo total em dólar de cada pergunta.
-*   **Fontes Consultadas**: Lista exata de quais PDFs e quais páginas foram lidas para gerar a resposta.
+### 🔹 Memória de Conversa (Multi-turn)
+*   O agente agora entende o contexto das mensagens anteriores, permitindo uma conversa natural e fluida com os documentos.
 
-### 🔹 Busca Profunda (K=25)
-Configuramos a busca para ler até **25 trechos simultâneos** por pergunta. Isso permite que a IA "atropele" índices e sumários para encontrar o conteúdo real dos capítulos lá no meio dos PDFs.
+### 🔹 Rastreamento de Fontes
+*   Visualize exatamente de qual PDF e de qual página a informação foi extraída. As fontes são exibidas de forma persistente na barra lateral para cada consulta.
 
 ---
 
-## 👨‍💻 Suporte Técnico
-Desenvolvido com foco em **Clean Code** e **Modularização**, permitindo fácil manutenção e expansão para outros modelos de IA.
+## 🔧 Configurações Técnicas
+*   **Modelo LLM**: `gpt-4o-mini` ou `Ollama`.
+*   **Busca de Contexto**: Recupera até **25 trechos relevantes** (k=25).
+*   **Text Splitting**: Chunks de 1500 caracteres com 300 de sobreposição (Configurável via `config.py`).
+
+---
+
+## 👨‍💻 Desenvolvimento
+Projeto desenvolvido seguindo princípios de **Clean Code**, utilizando o ecossistema **LangChain** para orquestração de IA.
