@@ -110,7 +110,9 @@ def principal():
                     model=MODEL_OLLAMA_CHAT,
                     temperature=0,
                     num_ctx=OLLAMA_CONTEXT_WINDOW,
-                    num_predict=1024
+                    num_predict=2048,  # era 1024 — respostas mais completas
+                    num_gpu=99,        # força todos os layers na GPU
+                    num_thread=8,      # threads CPU para pré-processamento
                 )
 
             prompt = ChatPromptTemplate.from_messages([

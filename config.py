@@ -2,8 +2,8 @@ import os
 from dotenv import load_dotenv
 
 # --- Configurações de Processamento de Documentos ---
-CHUNK_SIZE = 800
-CHUNK_OVERLAP = 150
+CHUNK_SIZE = 1000    # Aumentado (menos chunks = menos chamadas à API de embedding)
+CHUNK_OVERLAP = 200  # ~20% de overlap para manter continuidade de contexto
 
 # --- Configurações de Recuperação (RAG) ---
 K_RETRIEVAL = 10
@@ -11,10 +11,9 @@ K_RETRIEVAL = 10
 # --- Modelos e Provedores ---
 MODEL_OPENAI = "gpt-4o-mini"
 MODEL_OLLAMA_EMBED = "mxbai-embed-large"
-MODEL_OLLAMA_CHAT = "deepseek-r1:8b" # Modelo principal aproveitando a GPU de 16GB
-OLLAMA_CONTEXT_WINDOW = 8192 # Janela de contexto ampliada para o RAG local
-#MODEL_OLLAMA_CHAT = "phi"
-#MODEL_OLLAMA_CHAT = "gemma3:"
+MODEL_OLLAMA_CHAT = "deepseek-r1:8b"
+OLLAMA_CONTEXT_WINDOW = 16384  # 16GB VRAM suporta janela ampliada (era 8192)
+EMBED_CONCURRENCY = 4          # Lotes de embedding em paralelo (requer OLLAMA_NUM_PARALLEL>=4)
 
 
 # --- Arquivos de Dados ---
